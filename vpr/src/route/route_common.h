@@ -23,7 +23,7 @@ t_trace* update_traceback(t_heap* hptr, ClusterNetId net_id);
 
 void reset_path_costs(const std::vector<int>& visited_rr_nodes);
 
-float get_rr_cong_cost(int inode);
+float get_rr_cong_cost(int inode, float pres_fac);
 
 void mark_ends(ClusterNetId net_id);
 void mark_remaining_ends(const std::vector<int>& remaining_sinks);

@@ -1326,7 +1326,6 @@ struct t_trace {
  *   @param prev_edge  Index of the edge (from 0 to num_edges-1 of prev_node)
  *                     that was used to reach this node from the previous node.
  *                     If there is no predecessor, prev_edge = NO_PREVIOUS.
- *   @param pres_cost  Present congestion cost term for this node.
  *   @param acc_cost   Accumulated cost term from previous Pathfinder iterations.
  *   @param path_cost  Total cost of the path up to and including this node +
  *                     the expected cost to the target if the timing_driven router
@@ -1336,6 +1335,7 @@ struct t_trace {
  *   @param target_flag  Is this node a target (sink) for the current routing?
  *                     Number of times this node must be reached to fully route.
  *   @param occ        The current occupancy of the associated rr node
+ *   @param cap        The capacity of the associated rr node
  */
 struct t_rr_node_route_inf {
     int prev_node;
@@ -1350,12 +1350,15 @@ struct t_rr_node_route_inf {
 
   public: //Accessors
     short occ() const { return occ_; }
+    short capacity() const { return cap_; }
 
   public: //Mutators
     void set_occ(int new_occ) { occ_ = new_occ; }
+    void set_capacity(int new_cap) { cap_ = new_cap; }
 
   private: //Data
     short occ_ = 0;
+    short cap_ = 0;
 };
 
 /**

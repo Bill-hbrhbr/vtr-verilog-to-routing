@@ -97,7 +97,7 @@ static void adjust_one_rr_occ_and_apcost(int inode, int add_or_sub, float pres_f
 
 bool validate_traceback_recurr(t_trace* trace, std::set<int>& seen_rr_nodes);
 static bool validate_trace_nodes(t_trace* head, const std::unordered_set<int>& trace_nodes);
-static float get_single_rr_cong_cost(int inode);
+static float get_single_rr_cong_cost(int inode, float pres_fac);
 static vtr::vector<ClusterNetId, uint8_t> load_is_clock_net();
 
 /************************** Subroutine definitions ***************************/
@@ -698,11 +698,11 @@ void reset_path_costs(const std::vector<int>& visited_rr_nodes) {
 }
 
 /* Returns the *congestion* cost of using this rr_node. */
-float get_rr_cong_cost(int inode) {
+float get_rr_cong_cost(int inode, float pres_fac) {
     auto& device_ctx = g_vpr_ctx.device();
     auto& route_ctx = g_vpr_ctx.routing();
 
-    float cost = get_single_rr_cong_cost(inode);
+    float cost = get_single_rr_cong_cost(inode, pres_fac);
 
     if (route_ctx.non_configurable_bitset.get(inode)) {
         // Access unordered_map only when the node is part of a non-configurable set
@@ -713,7 +713,7 @@ float get_rr_cong_cost(int inode) {
                     continue; //Already included above
                 }
 
-                cost += get_single_rr_cong_cost(node);
+                cost += get_single_rr_cong_cost(node, pres_fac);
             }
         }
     }
@@ -722,14 +722,21 @@ float get_rr_cong_cost(int inode) {
 
 /* Returns the congestion cost of using this rr_node, *ignoring*
  * non-configurable edges */
-static float get_single_rr_cong_cost(int inode) {
+static float get_single_rr_cong_cost(int inode, float pres_fac) {
     auto& device_ctx = g_vpr_ctx.device();
     auto& route_ctx = g_vpr_ctx.routing();
 
     auto cost_index = device_ctx.rr_nodes[inode].cost_index();
+    auto& node_inf = route_ctx.rr_node_route_inf[inode];
+
+    VTR_ASSERT_MSG(device_ctx.rr_nodes[inode].capacity() == node_inf.capacity(), "capacities are different");
+
     float cost = device_ctx.rr_indexed_data[cost_index].base_cost
-                 * route_ctx.rr_node_route_inf[inode].acc_cost
-                 * route_ctx.rr_node_route_inf[inode].pres_cost;
+                 * node_inf.acc_cost
+                 * std::max(
+                         (float) 1.0,
+                         (node_inf.occ() - node_inf.capacity() + 1) * pres_fac);
+
     return cost;
 }
 
@@ -959,14 +966,17 @@ void reset_rr_node_route_structs() {
     VTR_ASSERT(route_ctx.rr_node_route_inf.size() == size_t(device_ctx.rr_nodes.size()));
 
     for (size_t inode = 0; inode < device_ctx.rr_nodes.size(); inode++) {
-        route_ctx.rr_node_route_inf[inode].prev_node = NO_PREVIOUS;
-        route_ctx.rr_node_route_inf[inode].prev_edge = RREdgeId::INVALID();
-        route_ctx.rr_node_route_inf[inode].pres_cost = 1.0;
-        route_ctx.rr_node_route_inf[inode].acc_cost = 1.0;
-        route_ctx.rr_node_route_inf[inode].path_cost = std::numeric_limits<float>::infinity();
-        route_ctx.rr_node_route_inf[inode].backward_path_cost = std::numeric_limits<float>::infinity();
-        route_ctx.rr_node_route_inf[inode].target_flag = 0;
-        route_ctx.rr_node_route_inf[inode].set_occ(0);
+        auto& node_inf = route_ctx.rr_node_route_inf[inode];
+
+        node_inf.prev_node = NO_PREVIOUS;
+        node_inf.prev_edge = RREdgeId::INVALID();
+        node_inf.pres_cost = 1.0;
+        node_inf.acc_cost = 1.0;
+        node_inf.path_cost = std::numeric_limits<float>::infinity();
+        node_inf.backward_path_cost = std::numeric_limits<float>::infinity();
+        node_inf.target_flag = 0;
+        node_inf.set_occ(0);
+        node_inf.set_capacity(device_ctx.rr_nodes[inode].capacity());
     }
 }
 
@@ -1421,7 +1431,7 @@ void reserve_locally_used_opins(HeapInterface* heap, float pres_fac, float acc_f
                 VTR_ASSERT(device_ctx.rr_nodes[to_node].type() == OPIN);
 
                 //Add the OPIN to the heap according to it's congestion cost
-                cost = get_rr_cong_cost(to_node);
+                cost = get_rr_cong_cost(to_node, pres_fac);
                 add_node_to_heap(heap, route_ctx.rr_node_route_inf,
                                  to_node, cost, OPEN, RREdgeId::INVALID(),
                                  0., 0.);

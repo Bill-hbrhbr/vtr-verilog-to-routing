@@ -424,7 +424,7 @@ static void breadth_first_add_to_heap(BinaryHeap& heap, const float path_cost, c
 static float evaluate_node_cost(const float prev_path_cost, const float bend_cost, const int from_node, const int to_node) {
     auto& device_ctx = g_vpr_ctx.device();
 
-    float tot_cost = prev_path_cost + get_rr_cong_cost(to_node);
+    float tot_cost = prev_path_cost + get_rr_cong_cost(to_node, 1.0);
 
     if (bend_cost != 0.) {
         t_rr_type from_type = device_ctx.rr_nodes[from_node].type();
@@ -446,7 +446,7 @@ static void breadth_first_add_source_to_heap(BinaryHeap& heap, ClusterNetId net_
     auto& route_ctx = g_vpr_ctx.routing();
 
     inode = route_ctx.net_rr_terminals[net_id][0]; /* SOURCE */
-    cost = get_rr_cong_cost(inode);
+    cost = get_rr_cong_cost(inode, 1.0);
 
 #ifdef ROUTER_DEBUG
     VTR_LOG("  Adding Source node %d to heap\n", inode);
