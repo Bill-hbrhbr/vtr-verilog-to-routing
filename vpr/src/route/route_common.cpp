@@ -334,7 +334,7 @@ bool feasible_routing() {
     /* This routine checks to see if this is a resource-feasible routing.      *
      * That is, are all rr_node capacity limitations respected?  It assumes    *
      * that the occupancy arrays are up to date when it is called.             */
-
+    #include <string>
     auto& device_ctx = g_vpr_ctx.device();
     auto& route_ctx = g_vpr_ctx.routing();
 
