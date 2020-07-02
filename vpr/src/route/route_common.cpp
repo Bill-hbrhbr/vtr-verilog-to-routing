@@ -328,7 +328,7 @@ bool try_route(int width_fac,
     return (success);
 }
 
-static std::string fname = "feasible0.csv";
+static std::string fname = "feasibleA.csv";
 
 bool feasible_routing() {
     /* This routine checks to see if this is a resource-feasible routing.      *
