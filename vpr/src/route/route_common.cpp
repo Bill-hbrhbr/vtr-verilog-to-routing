@@ -328,18 +328,18 @@ bool try_route(int width_fac,
     return (success);
 }
 
-static int f_num = 0;
+static std::string fname = "feasible0.csv";
 
 bool feasible_routing() {
     /* This routine checks to see if this is a resource-feasible routing.      *
      * That is, are all rr_node capacity limitations respected?  It assumes    *
      * that the occupancy arrays are up to date when it is called.             */
-    #include <string>
     auto& device_ctx = g_vpr_ctx.device();
     auto& route_ctx = g_vpr_ctx.routing();
 
     bool feasible = true;
-    std::fstream fout("feasible" + to_string(f_num++) + ".csv");
+    std::fstream fout(fname);
+    fname[8]++;
     for (size_t inode = 0; inode < device_ctx.rr_nodes.size(); inode++) {
         fout << inode << ',' << route_ctx.rr_node_route_inf[inode].occ() << ',' << device_ctx.rr_nodes[inode].capacity() << '\n';
         if (route_ctx.rr_node_route_inf[inode].occ() > device_ctx.rr_nodes[inode].capacity()) {
