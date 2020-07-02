@@ -328,6 +328,8 @@ bool try_route(int width_fac,
     return (success);
 }
 
+static int f_num = 0;
+
 bool feasible_routing() {
     /* This routine checks to see if this is a resource-feasible routing.      *
      * That is, are all rr_node capacity limitations respected?  It assumes    *
@@ -336,13 +338,17 @@ bool feasible_routing() {
     auto& device_ctx = g_vpr_ctx.device();
     auto& route_ctx = g_vpr_ctx.routing();
 
+    bool feasible = true;
+    std::fstream fout("feasible" + itos(f_num++) + ".csv");
     for (size_t inode = 0; inode < device_ctx.rr_nodes.size(); inode++) {
+        fout << inode << ',' << route_ctx.rr_node_route_inf[inode].occ() << ',' << device_ctx.rr_nodes[inode].capacity() << '\n';
         if (route_ctx.rr_node_route_inf[inode].occ() > device_ctx.rr_nodes[inode].capacity()) {
-            return (false);
+            feasible = false;
         }
     }
+    fout.close();
 
-    return (true);
+    return feasible;
 }
 
 //Returns all RR nodes in the current routing which are congested
