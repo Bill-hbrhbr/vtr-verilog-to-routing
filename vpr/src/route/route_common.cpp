@@ -330,7 +330,7 @@ bool try_route(int width_fac,
 
 static std::string fname = "feasibleA.csv";
 
-bool feasible_routing() {
+bool feasible_routing(const std::string &fname) {
     /* This routine checks to see if this is a resource-feasible routing.      *
      * That is, are all rr_node capacity limitations respected?  It assumes    *
      * that the occupancy arrays are up to date when it is called.             */
@@ -339,7 +339,6 @@ bool feasible_routing() {
 
     bool feasible = true;
     std::ofstream fout(fname);
-    fname[8]++;
     for (size_t inode = 0; inode < device_ctx.rr_nodes.size(); inode++) {
         fout << inode << ',' << route_ctx.rr_node_route_inf[inode].occ() << ',' << device_ctx.rr_nodes[inode].capacity();
         if (route_ctx.rr_node_route_inf[inode].occ() > device_ctx.rr_nodes[inode].capacity()) {
@@ -352,6 +351,12 @@ bool feasible_routing() {
     fout.close();
 
     return feasible;
+}
+
+bool feasible_routing() {
+    bool is_feasible = feasible_routing(fname);
+    fname[8]++;
+    return is_feasible;
 }
 
 //Returns all RR nodes in the current routing which are congested
