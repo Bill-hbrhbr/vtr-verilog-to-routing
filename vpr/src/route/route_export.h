@@ -29,6 +29,8 @@ bool try_route(int width_fac,
 
 bool feasible_routing();
 
+bool feasible_routing(const std::string &fname);
+
 std::vector<int> collect_congested_rr_nodes();
 
 std::vector<std::set<ClusterNetId>> collect_rr_node_nets();
