@@ -338,7 +338,7 @@ bool feasible_routing() {
     auto& route_ctx = g_vpr_ctx.routing();
 
     bool feasible = true;
-    std::fstream fout(fname);
+    std::ofstream fout(fname);
     fname[8]++;
     for (size_t inode = 0; inode < device_ctx.rr_nodes.size(); inode++) {
         fout << inode << ',' << route_ctx.rr_node_route_inf[inode].occ() << ',' << device_ctx.rr_nodes[inode].capacity() << '\n';
