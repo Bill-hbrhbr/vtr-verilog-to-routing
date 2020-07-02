@@ -341,9 +341,12 @@ bool feasible_routing() {
     std::ofstream fout(fname);
     fname[8]++;
     for (size_t inode = 0; inode < device_ctx.rr_nodes.size(); inode++) {
-        fout << inode << ',' << route_ctx.rr_node_route_inf[inode].occ() << ',' << device_ctx.rr_nodes[inode].capacity() << '\n';
+        fout << inode << ',' << route_ctx.rr_node_route_inf[inode].occ() << ',' << device_ctx.rr_nodes[inode].capacity();
         if (route_ctx.rr_node_route_inf[inode].occ() > device_ctx.rr_nodes[inode].capacity()) {
+            fout << "damn\n";
             feasible = false;
+        } else {
+            fout << '\n';
         }
     }
     fout.close();
